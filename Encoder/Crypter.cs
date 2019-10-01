@@ -8,7 +8,7 @@ namespace Encoder
 {
     class Crypter
     {
-        static char[,] code1 =
+        static readonly char[,] code1 =
         {
                 { 'Q', 'A', 'Z', 'W', 'S' },
                 { 'X', 'C', 'D', 'E', 'R' },
@@ -16,7 +16,7 @@ namespace Encoder
                 { 'Y', 'H', 'N', 'M', 'U' },
                 { 'I', 'K', 'L', 'O', 'P' }
         };
-        static char[,] code2 =
+        static readonly char[,] code2 =
         {
                 { 'Q', 'W', 'E', 'R', 'T' },
                 { 'A', 'S', 'D', 'F', 'Z' },
@@ -24,7 +24,7 @@ namespace Encoder
                 { 'L', 'K', 'H', 'M', 'N' },
                 { 'X', 'C', 'V', 'B', 'G' }
         };
-        static char[,] encode1 =
+        static readonly char[,] encode1 =
         {
                 { 'P', 'L', 'M', 'K', 'O' },
                 { 'I', 'N', 'U', 'H', 'B' },
@@ -32,7 +32,7 @@ namespace Encoder
                 { 'C', 'X', 'D', 'R', 'E' },
                 { 'W', 'S', 'Q', 'A', 'Z' }
         };
-        static char[,] encode2 =
+        static readonly char[,] encode2 =
         {
                 { 'A', 'Q', 'B', 'L', 'Z' },
                 { 'S', 'D', 'C', 'F', 'X' },
@@ -41,43 +41,58 @@ namespace Encoder
                 { 'I', 'U', 'O', 'K', 'H' }
         };
         
-        public static string encode(string value)
+
+        public static string decrypt(string value)
         {
-            int rows = code1.GetUpperBound(0) + 1;
-            int columns = code1.Length / rows;
             var result = new List<char> { };
 
-            for (int i = 0; i < rows; i++)
+            for (int i = 0; i < value.Length - 1; i++)
             {
-                for (int j = 0; j < columns; j++)
-                {
-                    int c = 0;
-                    if (value[c++] == code1[i, j])
-                    {
-                            for (int a = 0; a < rows; a++)
-                            {
-                                for (int b = 0; b < columns; b++)
-                                {
-                                    if (c < value.Length - 2)
-                                    {
-                                        if (value[c++] == code2[a, b])
-                                        {
-                                            result.Add(encode1[j, a]);
-                                            result.Add(encode2[i, b]);
-                                        }
-                                    }
+                var a = CoordinatesOf(encode1, value[i]);
+                i++;
+                var b = CoordinatesOf(encode2, value[i]);
 
-                                    else
-                                    {
-                                        break;
-                                    }
-                                }
-                            }
-                    }
-                }
+                result.Add(code1[a.Item1, b.Item2]);
+                result.Add(code2[b.Item1,a.Item2]);
             }
+            
             string Result = new string(result.ToArray());
             return Result;
+        }
+
+        public static string encrypt(string value)
+        {
+            var result = new List<char> { };
+
+            for (int i = 0; i < value.Length - 1; i++)
+            {
+                var a = CoordinatesOf(code1, value[i]);
+                i++;
+                var b = CoordinatesOf(code2, value[i]);
+
+                result.Add(encode1[a.Item1, b.Item2]);
+                result.Add(encode2[b.Item1, a.Item2]);
+            }
+
+            string Result = new string(result.ToArray());
+            return Result;
+        }
+
+        public static Tuple<int, int> CoordinatesOf(char[,] matrix, char value)
+        {
+            int w = 5; // width
+            int h = w; // height
+
+            for (int x = 0; x < w; ++x)
+            {
+                for (int y = 0; y < h; ++y)
+                {
+                    if (matrix[x, y].Equals(value))
+                        return Tuple.Create(x, y);
+                }
+            }
+
+            return Tuple.Create(-1, -1);
         }
     }
 }
